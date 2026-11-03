@@ -1,0 +1,29 @@
+@page "/library"
+<h3>Library</h3>
+
+@if(_books != null)
+{
+    @foreach(Book book in _books)
+    {
+        <p>@book.Title 
+            @if (book.BookAuthor != null)
+            {
+                @($" by {book.BookAuthor.Name}") 
+            }
+            </p>
+    }
+}
+@code {
+    private List<Book>? _books;
+    protected override async Task OnInitializedAsync()
+    {
+        IConfiguration config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .AddEnvironmentVariables()
+            .Build();
+        
+        SqliteDataAccess da = new SqliteDataAccess(config.GetRequiredSection("ConnectionStrings"));
+        _books = await da.LoadBooks();
+    }
+
+}
