@@ -1,0 +1,81 @@
+@page "/library/add-book"
+@inject NavigationManager NavigationManager
+
+
+<h3>AddBook</h3>
+<br/>
+<br/>
+
+<EditForm Model="book" FormName="formBook" OnValidSubmit="Submit">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <ValidationSummary></ValidationSummary>
+    
+    <div class="row mb-3">
+        <div class="col-2">
+            <label class="form-label">Title</label>
+        </div>
+
+        <div class="col-6">
+            <InputText @bind-Value="book.Title" class="form-control"></InputText>
+        </div>
+
+        <div class="col">
+            <ValidationMessage For="() => book.Title"></ValidationMessage>
+        </div>
+    </div>
+    
+    <div class="row mb-3">
+        <div class="col-2">
+            <label class="form-label">Author</label>
+        </div>
+
+        <div class="col-6">
+            <InputSelect @bind-Value="book.AuthorID" class="form-control">
+                @if (_authors != null)
+                {
+                    @foreach (Author author in _authors)
+                    {
+                        <option value="@author.ID">@author.Name</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+    </div>
+    <br/>
+    <button class="btn btn-primary" type="submit">Save</button>
+</EditForm>
+<br/>
+<br/>
+<a href="/library" class="btn btn-primary">Close</a>
+
+@code {
+    [SupplyParameterFromForm] private Book book { get; set; } = new Book();
+    private List<Author>? _authors;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IConfiguration config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .AddEnvironmentVariables()
+            .Build();
+        
+        SqliteDataAccess da = new SqliteDataAccess(config.GetRequiredSection("ConnectionStrings"));
+        _authors = await da.LoadAuthors();      
+    }
+
+    private void Submit()
+    {
+        if (book != null)
+        {
+            IConfiguration config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
+            
+            SqliteDataAccess da = new SqliteDataAccess(config.GetRequiredSection("ConnectionStrings"));
+            da.AddBook(book);
+        }
+        
+        NavigationManager.NavigateTo("/library");
+    }
+}

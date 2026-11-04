@@ -16,7 +16,7 @@ namespace LibraryManager.DataLayer
         
         public async Task<List<Book>> LoadBooks()
         {
-            string sql = @"select b.ID, b.Title, a.ID, a.Name 
+            string sql = @"select b.ID, b.Title, b.AuthorID, a.ID, a.Name 
                            from Book as b
                            left join Author as a
                                on b.AuthorID = a.ID";
@@ -34,6 +34,16 @@ namespace LibraryManager.DataLayer
                 return books;
             }
         }
+        
+        public async Task<List<Author>> LoadAuthors()
+        {
+            string sql = @"select ID, Name from Author";
+
+            using (IDbConnection cnn = new SQLiteConnection(_connectionString))
+            {
+                return (await cnn.QueryAsync<Author>(sql)).ToList<Author>();
+            }
+        }
 
         public async Task<Book> GetBook(int id)
         {
@@ -44,20 +54,23 @@ namespace LibraryManager.DataLayer
                 return (await cnn.QueryAsync<Book>(sql, new { ID = id })).FirstOrDefault<Book>();
             }
         }
+        
+        public void AddBook(Book book)
+        {
+            string title = book.Title;
+            int authorId = book.AuthorID;
+            
+            using (IDbConnection cnn = new SQLiteConnection(_connectionString))
+            {
+                cnn.Execute("insert into Book (Title, AuthorID) values (@Title, @AuthorID)", new {@Title = title, @AuthorID = authorId});
+            }
+        }
 
         public void EditBook(Book book)
         {
             using (IDbConnection cnn = new SQLiteConnection(_connectionString))
             {
                 cnn.Execute("update Kit set Title = @Title, AuthorID = @AuthorId where ID = @ID", book);
-            }
-        }
-
-        public void AddBook(Book book)
-        {
-            using (IDbConnection cnn = new SQLiteConnection(_connectionString))
-            {
-                cnn.Execute("insert into Book (Title, AuthorID) values (@Title, @AuthorId)", book);
             }
         }
         
