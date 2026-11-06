@@ -68,17 +68,22 @@ namespace LibraryManager.DataLayer
 
         public void EditBook(Book book)
         {
+            int id = book.ID;
+            string title = book.Title;
+            int authorId = book.AuthorID;
+            string sql = "update Book set Title = @Title, AuthorID = @AuthorID where ID = @ID";
             using (IDbConnection cnn = new SQLiteConnection(_connectionString))
             {
-                cnn.Execute("update Kit set Title = @Title, AuthorID = @AuthorId where ID = @ID", book);
+                cnn.Execute(sql, new {@ID = id, @Title = title, @AuthorID = authorId});
             }
         }
         
         public void DeleteBook(int bookId)
         {
+            string sql = "delete from Book where ID = @ID";
             using (IDbConnection cnn = new SQLiteConnection(_connectionString))
             {
-                cnn.Execute("delete Book where ID = @ID", bookId);
+                cnn.Execute(sql, new { @ID = bookId });
             }
         }
 

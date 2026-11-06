@@ -1,31 +1,53 @@
 @page "/library"
+@inject NavigationManager NavigationManager
+
 <h3>Library</h3>
 
 @if(_books != null)
 {
+    <ul>
     @foreach(Book book in _books)
     {
-        <p>@book.Title 
-            @if (book.BookAuthor != null)
-            {
-                @($" by {book.BookAuthor.Name}") 
-            }
-            </p>
+        <li>@book.Title 
+            <span>
+                @if (book.BookAuthor != null)
+                {
+                    @($" by {book.BookAuthor.Name}")      
+                }
+                
+                &nbsp;
+                <EditForm Model="book" FormName="@($"form-book-{book.ID}")" OnValidSubmit="@(() => { DeleteBook(book.ID); })">
+                    <a href="/library/edit-book/@book.ID" class="btn btn-primary">Edit</a>     <button type="submit" class="btn btn-primary">Delete</button>
+                </EditForm>
+            </span>
+        </li>
     }
+    </ul>
 }
 
 <a href="/library/add-book" class="btn btn-primary">Add Book</a>
 @code {
     private List<Book>? _books;
+
+    SqliteDataAccess da;
+
     protected override async Task OnInitializedAsync()
     {
         IConfiguration config = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()
             .Build();
-        
-        SqliteDataAccess da = new SqliteDataAccess(config.GetRequiredSection("ConnectionStrings"));
+
+        da = new SqliteDataAccess(config.GetRequiredSection("ConnectionStrings"));
         _books = await da.LoadBooks();
     }
 
+    private void DeleteBook(int id)
+    {
+        if (id > 0)
+        {
+            da.DeleteBook(id);
+            NavigationManager.Refresh();
+        }
+    }
 }
